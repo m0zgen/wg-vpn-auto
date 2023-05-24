@@ -74,10 +74,10 @@ After=syslog.target network.target
 [Service]
 Type=simple
 PIDFile=/run/wgweb.pid
-ExecStart=\$WG_CATALOG/wireguard-ui -bind-address \$WG_ADDERSS:\$WG_PORT
+ExecStart=$WG_CATALOG/wireguard-ui -bind-address $WG_ADDERSS:$WG_PORT
 WorkingDirectory=/usr/local/bin/wgui/
-ExecReload=/bin/kill -s HUP \$MAINPID
-ExecStop=/bin/kill -s QUIT \$MAINPID
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
 User=root
 Group=root
 Restart=always
@@ -120,6 +120,18 @@ function reboot_computer() {
     reboot
 }
 
+# Show info
+function show_info() {
+    echo "Wireguard web GUI: http://$WG_ADDERSS:$WG_PORT"
+    echo "Wireguard config: /etc/wireguard/wg0.conf"
+
+    echo -e "Wireguard config detail:\n"
+    cat /etc/wireguard/wg0.conf
+    
+    echo -e "Private key:\n"
+    cat /etc/wireguard/wg0.conf | grep PrivateKey | awk {print $3}
+}
+
 # Actions
 # -------------------------------------------------------------------------------------------\
 update_debian
@@ -129,5 +141,6 @@ install_wg_gui
 create_wg_unit
 add_ssh_key
 get_net_interface
+show_info
 
 # systemctl status wg-quick@wg0.service
