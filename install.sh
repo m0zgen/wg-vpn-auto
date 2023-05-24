@@ -6,7 +6,6 @@
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
 
-EXT_IP=`curl -s ifconfig.me`
 WG_CATALOG=/usr/local/bin/wgui
 WG_ADDERSS=10.0.1.0
 WG_PORT=51823
@@ -34,7 +33,7 @@ function update_debian() {
 
 # Install wireguard on Debian
 function install_wireguard() {
-    apt -y install wireguard wget net-tools iptables iftop htop zip
+    apt -y install wireguard wget net-tools iptables iftop htop zip curl
 }
 
 # Syscrl frowarder
@@ -121,21 +120,14 @@ function get_net_interface() {
 
 # Restart systemd services
 function restart_systemd() {
-    systemctl restart wgweb
-    timeout_sleep 2
-    systemctl start wg-quick@wg0.service
-    timeout_sleep 2
-    systemctl start wgui.{path,service}   
-    timeout_sleep 2
     systemctl restart wg-quick@wg0.service
+    systemctl restart wgui.{path,service}
+    systemctl restart wgweb
 }
 
 # Systemd reload
 function systemd_reload() {
-    systemctl daemon-reload
-    systemctl enable wgweb
-    systemctl enable wgui.path
-    systemctl enable wgui.service
+    systemctl enable wgui.{path,service}
     systemctl enable wg-quick@wg0.service
     restart_systemd
 }
@@ -147,12 +139,12 @@ function reboot_computer() {
 
 # Show info
 function show_info() {
+    EXT_IP=`curl -s ifconfig.me`
     echo "Wireguard web GUI: http://$EXT_IP:5000"
     echo "Wireguard config: /etc/wireguard/wg0.conf"
 
     echo -e "Wireguard config detail:\n"
     cat /etc/wireguard/wg0.conf
-    
 }
 
 # Actions
