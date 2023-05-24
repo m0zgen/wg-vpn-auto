@@ -119,6 +119,17 @@ function get_net_interface() {
 
 }
 
+# Restart systemd services
+function restart_systemd() {
+    systemctl restart wgweb
+    timeout_sleep 2
+    systemctl start wg-quick@wg0.service
+    timeout_sleep 2
+    systemctl start wgui.{path,service}   
+    timeout_sleep 2
+    systemctl restart wg-quick@wg0.service
+}
+
 # Systemd reload
 function systemd_reload() {
     systemctl daemon-reload
@@ -126,14 +137,7 @@ function systemd_reload() {
     systemctl enable wgui.path
     systemctl enable wgui.service
     systemctl enable wg-quick@wg0.service
-    systemctl restart wgweb
-    timeout_sleep 3
-    systemctl start wg-quick@wg0.service
-    timeout_sleep 3
-    systemctl start wgui.{path,service}   
-    timeout_sleep 3
-    get_net_interface
-    systemctl restart wg-quick@wg0.service
+    restart_systemd
 }
 
 # Reboot computer
@@ -146,7 +150,6 @@ function show_info() {
     echo "Wireguard web GUI: http://$EXT_IP:5000"
     echo "Wireguard config: /etc/wireguard/wg0.conf"
 
-    timeout_sleep 3
     echo -e "Wireguard config detail:\n"
     cat /etc/wireguard/wg0.conf
     
@@ -161,6 +164,9 @@ install_wg_gui
 create_wg_unit
 add_ssh_key
 systemd_reload
+timeout_sleep 3
+get_net_interface
+restart_systemds
 show_info
 
 # systemctl status wg-quick@wg0.service
