@@ -146,6 +146,7 @@ function show_info() {
     echo "Wireguard web GUI: http://$EXT_IP:5000"
     echo "Wireguard config: /etc/wireguard/wg0.conf"
 
+    timeout_sleep 3
     echo -e "Wireguard config detail:\n"
     cat /etc/wireguard/wg0.conf
     
