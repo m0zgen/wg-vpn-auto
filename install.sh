@@ -166,7 +166,7 @@ add_ssh_key
 systemd_reload
 timeout_sleep 3
 get_net_interface
-restart_systemds
+restart_systemd
 show_info
 
 # systemctl status wg-quick@wg0.service
