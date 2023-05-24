@@ -74,7 +74,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 PIDFile=/run/wgweb.pid
-ExecStart=/usr/local/bin/wgui/wireguard-ui -bind-address \$WG_ADDERSS:\$WG_PORT
+ExecStart=\$WG_CATALOG/wireguard-ui -bind-address \$WG_ADDERSS:\$WG_PORT
 WorkingDirectory=/usr/local/bin/wgui/
 ExecReload=/bin/kill -s HUP \$MAINPID
 ExecStop=/bin/kill -s QUIT \$MAINPID
@@ -88,13 +88,12 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOF
 
-
     systemctl daemon-reload
     systemctl enable wgui.{path,service}
     systemctl enable wg-quick@wg0.service
     systemctl start wg-quick@wg0.service
     systemctl start wgui.{path,service}
-    systemctl start wgweb
+    systemctl enable --now wgweb
 }
 
 # Add public ssh key to root user
@@ -107,3 +106,28 @@ EOF
 }
 
 # Determine network interface name
+function get_net_interface() {
+    NET_INTERFACE=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
+
+    iptables -A FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $NET_INTERFACE -j MASQUERADE;
+
+    #Post Down Script:
+    iptables -D FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $NET_INTERFACE -j MASQUERADE;
+}
+
+# Reboot computer
+function reboot_computer() {
+    reboot
+}
+
+# Actions
+# -------------------------------------------------------------------------------------------\
+update_debian
+install_wireguard
+sysctl_forwarder
+install_wg_gui
+create_wg_unit
+add_ssh_key
+get_net_interface
+
+# systemctl status wg-quick@wg0.service
