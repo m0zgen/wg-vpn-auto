@@ -12,6 +12,16 @@ WG_PORT=51823
 
 # Functions
 # -------------------------------------------------------------------------------------------\
+
+# Selleep function
+function timeout_sleep() {
+    echo "Sleeping for $1 seconds"
+    for (( i=$1; i>0; i--)); do
+        echo -ne "$i\r"
+        sleep 1
+    done
+}
+
 # Update Debian system
 function update_debian() {
     apt-get update
@@ -111,10 +121,12 @@ function get_net_interface() {
 # Systemd reload
 function systemd_reload() {
     systemctl daemon-reload
-    systemctl enable wgui.{path,service}
-    systemctl enable wg-quick@wg0.service
-    systemctl start wg-quick@wg0.service
-    systemctl start wgui.{path,service}
+    timeout_sleep 3
+    systemctl enable --now wgui.{path,service}
+    timeout_sleep 5
+    get_net_interface
+    systemctl enable --now wg-quick@wg0.service
+    timeout_sleep 5
     systemctl enable --now wgweb
 }
 
@@ -131,8 +143,6 @@ function show_info() {
     echo -e "Wireguard config detail:\n"
     cat /etc/wireguard/wg0.conf
     
-    echo -e "Private key:\n"
-    cat /etc/wireguard/wg0.conf | grep PrivateKey | awk {print $3}
 }
 
 # Actions
@@ -143,7 +153,6 @@ sysctl_forwarder
 install_wg_gui
 create_wg_unit
 add_ssh_key
-get_net_interface
 systemd_reload
 show_info
 
