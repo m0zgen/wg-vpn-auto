@@ -59,7 +59,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/systemctl reload wg-quick@wg0.service
+ExecStart=/usr/bin/systemctl restart wg-quick@wg0.service
 
 [Install]
 RequiredBy=wgui.path
@@ -113,8 +113,8 @@ EOF
 function get_net_interface() {
     NET_INTERFACE=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
 
-    sed -i 's/^PostUp.*/PostUp = iptables -A FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/' /etc/wireguard/wg0.conf
-    sed -i 's/^PostDown.*/PostDown = iptables -D FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/' /etc/wireguard/wg0.conf
+    sed -i "s/^PostUp.*/PostUp = iptables -A FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/" /etc/wireguard/wg0.conf
+    sed -i "s/^PostDown.*/PostDown = iptables -D FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/" /etc/wireguard/wg0.conf
 
 }
 
@@ -131,8 +131,10 @@ function systemd_reload() {
     systemctl restart wgweb
     timeout_sleep 3
     systemctl start wg-quick@wg0.service
-    get_net_interface
     systemctl start wgui.{path,service}   
+    timeout_sleep 3
+    get_net_interface
+    systemctl restart wg-quick@wg0.service
     
 }
 
