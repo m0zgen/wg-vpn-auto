@@ -109,10 +109,9 @@ EOF
 function get_net_interface() {
     NET_INTERFACE=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
 
-    iptables -A FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $NET_INTERFACE -j MASQUERADE;
+    sed -i 's/^PostUp.*/PostUp = iptables -A FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/' /etc/wireguard/wg0.conf
+    sed -i 's/^PostDown.*/PostDown = iptables -D FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/' /etc/wireguard/wg0.conf
 
-    #Post Down Script:
-    iptables -D FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $NET_INTERFACE -j MASQUERADE;
 }
 
 # Reboot computer
