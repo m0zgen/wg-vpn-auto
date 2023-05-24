@@ -88,12 +88,6 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOF
 
-    systemctl daemon-reload
-    systemctl enable wgui.{path,service}
-    systemctl enable wg-quick@wg0.service
-    systemctl start wg-quick@wg0.service
-    systemctl start wgui.{path,service}
-    systemctl enable --now wgweb
 }
 
 # Add public ssh key to root user
@@ -112,6 +106,16 @@ function get_net_interface() {
     sed -i 's/^PostUp.*/PostUp = iptables -A FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/' /etc/wireguard/wg0.conf
     sed -i 's/^PostDown.*/PostDown = iptables -D FORWARD -i $NET_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $NET_INTERFACE -j MASQUERADE;/' /etc/wireguard/wg0.conf
 
+}
+
+# Systemd reload
+function systemd_reload() {
+    systemctl daemon-reload
+    systemctl enable wgui.{path,service}
+    systemctl enable wg-quick@wg0.service
+    systemctl start wg-quick@wg0.service
+    systemctl start wgui.{path,service}
+    systemctl enable --now wgweb
 }
 
 # Reboot computer
@@ -140,6 +144,7 @@ install_wg_gui
 create_wg_unit
 add_ssh_key
 get_net_interface
+systemd_reload
 show_info
 
 # systemctl status wg-quick@wg0.service
