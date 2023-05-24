@@ -123,10 +123,14 @@ function systemd_reload() {
     systemctl daemon-reload
     systemctl enable --now wgweb
     timeout_sleep 3
-    systemctl enable --now wgui.{path,service}
+    systemctl enable --now wgui.path
+    timeout_sleep 5
+    systemctl enable --now wg-quick@wg0.service
+    timeout_sleep 5
+    systemctl enable --now wgui.service
     timeout_sleep 5
     get_net_interface
-    systemctl enable --now wg-quick@wg0.service
+    systemctl restart wgui.service
 
 }
 
