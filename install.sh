@@ -84,7 +84,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 PIDFile=/run/wgweb.pid
-ExecStart=$WG_CATALOG/wireguard-ui -bind-address $WG_ADDERSS:$WG_PORT
+ExecStart=$WG_CATALOG/wireguard-ui # -bind-address $WG_ADDERSS:$WG_PORT
 WorkingDirectory=/usr/local/bin/wgui/
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s QUIT $MAINPID
@@ -122,20 +122,17 @@ function get_net_interface() {
 function systemd_reload() {
     systemctl daemon-reload
     systemctl enable wgweb
-    timeout_sleep 3
     systemctl enable wgui.path
     systemctl enable wgui.service
-    timeout_sleep 5
     systemctl enable wg-quick@wg0.service
-    timeout_sleep 5
     systemctl restart wgweb
     timeout_sleep 3
     systemctl start wg-quick@wg0.service
+    timeout_sleep 3
     systemctl start wgui.{path,service}   
     timeout_sleep 3
     get_net_interface
     systemctl restart wg-quick@wg0.service
-    
 }
 
 # Reboot computer
